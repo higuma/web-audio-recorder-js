@@ -1,0 +1,81 @@
+div.container
+  h1
+    a(href="https://github.com/higuma/web-audio-recorder-js")
+      | WebAudioRecorder.js
+    |  demo
+  p Audio recording to WAV/OGG/MP3 with Web Audio API
+  hr
+  div.form-horizontal
+    div.form-group
+      label.col-sm-3.control-label Audio input
+      div.col-sm-2 Test tone
+      div.col-sm-3
+        input#test-tone-level(type="range" min="0" max="100" value="0")
+    div.form-group
+      div.col-sm-3
+      div.col-sm-2
+        input#microphone(type="checkbox")
+        |  Microphone
+      div.col-sm-3
+        input#microphone-level.hidden(type="range" min="0" max="100" value="0")
+    br
+    div.form-group
+      label.col-sm-3.control-label Recording time limit
+      div.col-sm-2
+        input#time-limit(type="range" min="1" max="10" value="3")
+      div#time-limit-text 3 minutes
+    br
+    div.form-group
+      label.col-sm-3.control-label Encoding
+      div.col-sm-3
+        input(type="radio" name="encoding" encoding="wav" checked)
+        |  .wav &nbsp; 
+        input(type="radio" name="encoding" encoding="ogg")
+        |  .ogg &nbsp; 
+        input(type="radio" name="encoding" encoding="mp3")
+        |  .mp3
+      label#encoding-option-label.col-sm-2.control-label
+      div.col-sm-2
+        input#encoding-option.hidden(type="range" min="0" max="11" value="6")
+      div#encoding-option-text.col-sm-2
+    br
+    div.form-group
+      label.col-sm-3.control-label Encoding process
+      div.col-sm-9
+        input(type="radio" name="encoding-process" mode="background" checked)
+        |  Encode on recording background
+    div.form-group
+      div.col-sm-3
+      div.col-sm-3
+        input(type="radio" name="encoding-process" mode="separate")
+        |  Encode after recording (safer)
+      label#report-interval-label.col-sm-2.control-label.hidden Reports every
+      div.col-sm-2
+        input#report-interval.hidden(type="range" min="1" max="5" value="1")
+      div#report-interval-text.hidden 1 second
+    br
+    div.form-group
+      label.col-sm-3.control-label Recording buffer size
+      div.col-sm-2
+        input#buffer-size(type="range" min="0" max="6")
+      div#buffer-size-text.col-sm-7
+    div.form-group
+      div.col-sm-3
+      div.col-sm-9.text-warning
+        strong Warning: 
+        span setting size below browser default may fail recording.
+    br
+    div.form-group
+      div.col-sm-3.control-label
+        span#recording.text-danger.hidden
+          strong RECORDING
+        | &nbsp; 
+        span#time-display 00:00
+      div.col-sm-3
+        button#record.btn.btn-danger RECORD
+        button#cancel.btn.btn-default.hidden CANCEL
+      div.col-sm-6
+        span#date-time.text-info
+  hr
+  h3 Recordings
+  div#recording-list

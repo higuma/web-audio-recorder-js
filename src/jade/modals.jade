@@ -1,0 +1,28 @@
+div.modal.fade#modal-loading
+  div.modal-dialog.modal-sm
+    div.modal-content
+      div.modal-header
+        h4.modal-title
+
+div.modal.fade#modal-progress
+  div.modal-dialog.modal-sm
+    div.modal-content
+      div.modal-header
+        h4.modal-title
+      div.modal-body
+        div.progress
+          div.progress-bar(style="width: 0%;")
+        div.text-center 0%
+      div.modal-footer
+        button.btn(type="button",data-dismiss="modal") Cancel
+
+div.modal.fade#modal-error
+  div.modal-dialog
+    div.modal-content
+      div.modal-header
+        button.close(type="button",data-dismiss="modal") &times;
+        h4.modal-title Error
+      div.modal-body
+        div.alert.alert-warning
+      div.modal-footer
+        button.btn.btn-primary(type="button",data-dismiss="modal") Close
