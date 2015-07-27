@@ -2,13 +2,13 @@
 
 ## What is it?
 
-WebAudioRecorder.js is a JavaScript library that records audio input (Web Audio API AudioNode object) and encodes to audio file image (Blob object). It supports the following three encoding formats.
+WebAudioRecorder.js is a JavaScript library that records audio input (Web Audio API AudioNode object) and encodes to audio file image (Blob object). It supports three encoding formats.
 
 * Waveform Audio (.wav)
 * Ogg Vorbis (.ogg)
 * MP3 (MPEG-1 Audio Layer III) (.mp3)
 
-> This library uses the following encoder libraries as lower layer.
+> This library uses following encoder libraries as lower layer.
 > 
 > * WavAudioEncoder.js: <https://github.com/higuma/wav-audio-encoder-js>
 > * OggVorbisEncoder.js: <https://github.com/higuma/ogg-vorbid-encoder-js>
@@ -42,22 +42,22 @@ Library consists of one main script and several worker scripts.
 * `WebAudioRecorderWav.min.js`: worker for Waveform Audio (concatenated with encoder and recompressed)
 * `WebAudioRecorderOgg.min.js`: worker for Ogg Vorbis (concatenated with encoder and recompressed)
 * `WebAudioRecorderMp3.min.js`: worker for MP3 (concatenated with encoder and recompressed)
-* `OggVorbisEncoder.min.js.mem`: memory initializer for Ogg Vorbis encoder (same data as above)
-* `Mp3LameEncoder.min.js.mem`: memory initializer for MP3 encoder (same data as avove)
+* `OggVorbisEncoder.min.js.mem`: memory initializer for Ogg Vorbis encoder (same file as above)
+* `Mp3LameEncoder.min.js.mem`: memory initializer for MP3 encoder (same file as avove)
 
 ### Using library
 
 Load main script from HTML first.
 
 ``` html
-<script src="/javascripts/WebAudioRecorder.js"></script>
+<script src="javascripts/WebAudioRecorder.js"></script>
 ```
 
 Worker files are loaded on creating an audio recorder object (or changing encoding by `setEncoding()`). You should set worker directory on object constructor (see API reference for detail).
 
 ``` javascript
 audioRecorder = new WebAudioRecorder(sourceNode, {
-  workerDir: "/javascripts/"    // must end with slash
+  workerDir: "javascripts/"     // must end with slash
 });
 ```
 
@@ -76,14 +76,13 @@ Create an audio recorder object.
     * `configs`: configuration object
         * `.workerDir`: worker files directory (default = `"/"`)
         * `.numChannels`: number of channels (default = `2` (stereo))
-        * `.bufferSize`: internal buffer size (default = `0` (use default))
         * `.encoding`: encoding (default = `"wav"`, see `.setEncoding()` for detail)
         * `.options`: options (see `.setOptions()` for detail)
         * you can also set event handlers (see "Event handlers" for detail)
 * Returns
     * audio recorder object
 
-Every configuration property has a default value (typically you must set only `.workerDir`). You can change encoding by `.setEncoding()` and options by `.setOptions()` after construction.
+Every configuration property has a default value (typically you ought to set only `.workerDir` and `.encoding`). You can change encoding by `.setEncoding()` and options by `.setOptions()` after construction.
 
 If you use MP3 encoding, you cannot change `.numChannels` from default (current MP3 encoder supports 2-channel stereo only).
 
@@ -121,6 +120,7 @@ Set options.
             * `true`: process encoding after recording is finished
         * `.progressInterval`: encoding progress report interval (millisecond) (default = `1000`)
             * (used only if `.encodeAfterRecord` is `true`)
+        * `.bufferSize`: recording buffer size (default = `undefined` (use browser default))
         * `.wav.mimeType`: Waveform Audio MIME type (default = `"audio/wav"`)
         * `.ogg.mimeType`: Ogg Vorbis MIME type (default = `"audio/ogg"`)
         * `.ogg.quality`: Ogg Vorbis quality (-0.1 .. 1) (default = `0.5`)
@@ -191,9 +191,9 @@ Finish current recording.
 * Returns
     * (none)
 
-If `.encoderAfterRecord` options is `false` (default), it finishes encoding and make a Blob object immediately. You can get a Blob object with `.onComplete()` event.
+If `.encoderAfterRecord` options is `false` (default), it finishes encoding and make a Blob object immediately. You get a Blob with `.onComplete()` event.
 
-If `.encoderAfterRecord` is `true`, it starts encoding process. Encoding process may take several seconds to a few minutes (depending on recording time).  You can check encoding progress with `onEncodingProgress()` event. Getting a Blob object is same as above.
+If `.encoderAfterRecord` is `true`, it starts encoding process. Encoding process may take several seconds to a few minutes (depending on recording time).  You can get encoding progress with `onEncodingProgress()` event. Getting a Blob is same as above.
 
 ``` javascript
 recorder.cancelEncoding()
@@ -212,24 +212,24 @@ This method is used when `.encoderAfterRecord` is `true` and worker is processin
 
 ### Event handlers
 
-Encoder worker's responses are processed by event handlers. Some other breakpoints are also prepared as events. Event summary is as follows (first parameter is always recorder object).
+Encoder worker's responses are processed by event handlers. Some other breakpoints are also provided as events. Events summary is as below (first parameter is always recorder object).
 
 ``` javascript
 recorder.onEncoderLoading = function(recorder, encoding) { ... }
 recorder.onEncoderLoaded = function(recorder, encoding) { ... }
 recorder.onTimeout = function(recorder) { ... }
-recorder.onEncodingProgress: function (recorder, progress) { ... }
+recorder.onEncodingProgress = function (recorder, progress) { ... }
 recorder.onEncodingCanceled = function(recorder) { ... }
-recorder.onComplete: function(recorder, blob) { ... }
+recorder.onComplete = function(recorder, blob) { ... }
 recorder.onError = function(recorder, message) { ... }
 ```
 
 You can set an event handler to object property.
 
 ``` javascript
-recorder = new WebAudioRecorder(source, { workerDir: "/javascripts/" });
+recorder = new WebAudioRecorder(source, { workerDir: "javascripts/" });
 recorder.onComplete = function(rec, blob) {
-  // use blob
+  // use Blob
 };
 ```
 
@@ -237,9 +237,12 @@ You can also set an event handler from constructor parameter.
 
 ``` javascript
 recorder = new WebAudioRecorder(source, {
-  workerDir: "/javascripts/",
-  onEncoderLoading: function(rec, encoding) {
-    // display "loading encoder..."
+  workerDir: "javascripts/",
+  onEncoderLoading: function(recorder, encoding) {
+    // show "loading encoder..." display
+  },
+  onEncoderLoaded: function(recorder, encoding) {
+    // hide "loading encoder..." display
   }
 });
 ```
@@ -284,7 +287,7 @@ recorder.onTimeout = function(recorder) { ... }
     * call `recorder.finishRecording()`.
 
 ``` javascript
-recorder.onEncodingProgress: function (recorder, progress) { ... }
+recorder.onEncodingProgress = function (recorder, progress) { ... }
 ```
 
 * Fired on
@@ -307,7 +310,7 @@ recorder.onEncodingCanceled = function(recorder) { ... }
     * empty function
 
 ``` javascript
-recorder.onComplete: function(recorder, blob) { ... }
+recorder.onComplete = function(recorder, blob) { ... }
 ```
 
 * Fired on
