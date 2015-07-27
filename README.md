@@ -11,7 +11,7 @@ WebAudioRecorder.js is a JavaScript library that records audio input (Web Audio 
 > This library uses following encoder libraries as lower layer.
 > 
 > * WavAudioEncoder.js: <https://github.com/higuma/wav-audio-encoder-js>
-> * OggVorbisEncoder.js: <https://github.com/higuma/ogg-vorbid-encoder-js>
+> * OggVorbisEncoder.js: <https://github.com/higuma/ogg-vorbis-encoder-js>
 > * Mp3LameEncoder.js: <https://github.com/higuma/mp3-lame-encoder-js>
 
 ## Demo
@@ -319,7 +319,7 @@ recorder.onComplete = function(recorder, blob) { ... }
     * `recorder`: audio recorder object
     * `blob`: Blob object
 * Default handler
-    * report error: `"You must override onComplete event"`
+    * warn `"You must override onComplete event"` by `recorder.onError()`
 
 This is the most important event. You must override to get the result.
 
