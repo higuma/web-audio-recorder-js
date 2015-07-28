@@ -239,18 +239,21 @@ updateBufferSizeText();         // initialize text
 $bufferSize.on('input', function() { updateBufferSizeText(); });
 
 // save/delete recording
-function saveRecording(blob) {
+function saveRecording(blob, encoding) {
   var html, time, url;
   var time = new Date(),
       url = URL.createObjectURL(blob),
       html = "<p recording='" + url + "'>" +
              "<audio controls src='" + url + "'></audio> " +
+             " (" + encoding.toUpperCase() + ") " +
              time.toString() +
              " <a class='btn btn-default' href='" + url +
-                  "' download='recording.wav'>" +
-             "Save...</a> " +
+             "' download='recording." +
+             encoding +
+             "'>Save...</a> " +
              "<button class='btn btn-danger' recording='" +
-                      url + "'>Delete</button>" +
+             url +
+             "'>Delete</button>" +
              "</p>";
   $recordingList.prepend($(html));
 }
