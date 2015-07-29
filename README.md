@@ -53,7 +53,7 @@ Load main script from HTML first.
 <script src="javascripts/WebAudioRecorder.js"></script>
 ```
 
-Worker files are loaded on creating an audio recorder object (or changing encoding by `setEncoding()`). You should set worker directory on object constructor (see API reference for detail).
+Worker files are loaded on creating an audio recorder object (or changing encoding by `setEncoding()`). You must set worker directory on object constructor (see API reference for detail).
 
 ``` javascript
 audioRecorder = new WebAudioRecorder(sourceNode, {
@@ -233,7 +233,7 @@ recorder.onComplete = function(rec, blob) {
 };
 ```
 
-You can also set an event handler from constructor parameter.
+You can also set event handlers from constructor parameter.
 
 ``` javascript
 recorder = new WebAudioRecorder(source, {
