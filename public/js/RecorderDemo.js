@@ -214,13 +214,16 @@
     option = ENCODING_OPTION[encoding];
     $('#encoding-option-label').html(option.label);
     $('#encoding-option-text').html(option.text(optionValue[encoding]));
-    $encodingOption.toggleClass('hidden', option.hidden).attr('max', option.max).on('input', function() {
-      var value;
-      value = $encodingOption[0].valueAsNumber;
-      optionValue[encoding] = value;
-      $('#encoding-option-text').html(option.text(value));
-    });
+    $encodingOption.toggleClass('hidden', option.hidden).attr('max', option.max);
     $encodingOption[0].valueAsNumber = optionValue[encoding];
+  });
+
+  $encodingOption.on('input', function() {
+    var encoding, option;
+    encoding = audioRecorder.encoding;
+    option = ENCODING_OPTION[encoding];
+    optionValue[encoding] = $encodingOption[0].valueAsNumber;
+    $('#encoding-option-text').html(option.text(optionValue[encoding]));
   });
 
   encodingProcess = 'background';

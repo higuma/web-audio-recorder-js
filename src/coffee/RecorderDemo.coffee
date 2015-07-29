@@ -167,12 +167,14 @@ $encoding.click (event) ->
   $encodingOption
     .toggleClass 'hidden', option.hidden
     .attr 'max', option.max
-    .on 'input', ->
-      value = $encodingOption[0].valueAsNumber
-      optionValue[encoding] = value
-      $('#encoding-option-text').html option.text(value)
-      return
   $encodingOption[0].valueAsNumber = optionValue[encoding]
+  return
+
+$encodingOption.on 'input', ->
+  encoding = audioRecorder.encoding
+  option = ENCODING_OPTION[encoding]
+  optionValue[encoding] = $encodingOption[0].valueAsNumber
+  $('#encoding-option-text').html option.text(optionValue[encoding])
   return
 
 # encoding process selector
