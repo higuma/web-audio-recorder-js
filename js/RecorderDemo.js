@@ -190,13 +190,15 @@ $encoding.click(function(event) {
   $('#encoding-option-text').html(option.text(optionValue[encoding]));
   $encodingOption
     .toggleClass('hidden', option.hidden)
-    .attr('max', option.max)
-    .on('input', function() {
-      var value = $encodingOption[0].valueAsNumber;
-      optionValue[encoding] = value;
-      $('#encoding-option-text').html(option.text(value));
-    });
+    .attr('max', option.max);
   $encodingOption[0].valueAsNumber = optionValue[encoding];
+});
+
+$encodingOption.on('input', function() {
+  var encoding = audioRecorder.encoding,
+      option = ENCODING_OPTION[encoding];
+  optionValue[encoding] = $encodingOption[0].value;
+  $('#encoding-option-text').html(option.text(optionValue[encoding]));
 });
 
 // encoding process selector
