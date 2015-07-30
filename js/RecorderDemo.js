@@ -232,7 +232,8 @@ $bufferSize[0].valueAsNumber = iDefBufSz;   // initialize with browser default
 function updateBufferSizeText() {
   var iBufSz = $bufferSize[0].valueAsNumber,
       text = "" + BUFFER_SIZE[iBufSz];
-  if (iBufSz === iDefBufSz) text += ' (browser default)';
+  if (iBufSz === iDefBufSz)
+    text += ' (browser default)';
   $('#buffer-size-text').html(text);
 }
 
@@ -242,13 +243,12 @@ $bufferSize.on('input', function() { updateBufferSizeText(); });
 
 // save/delete recording
 function saveRecording(blob, encoding) {
-  var html, time, url;
   var time = new Date(),
       url = URL.createObjectURL(blob),
       html = "<p recording='" + url + "'>" +
              "<audio controls src='" + url + "'></audio> " +
              " (" + encoding.toUpperCase() + ") " +
-             time.toString() +
+             time +
              " <a class='btn btn-default' href='" + url +
              "' download='recording." +
              encoding +
