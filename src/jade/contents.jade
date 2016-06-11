@@ -3,27 +3,34 @@ div.container
     a(href="https://github.com/higuma/web-audio-recorder-js")
       | WebAudioRecorder.js
     |  demo
-  p Audio recording to WAV/OGG/MP3 with Web Audio API
+  p Audio recording to WAV / OGG / MP3 with Web Audio API
   hr
   div.form-horizontal
     div.form-group
       label.col-sm-3.control-label Audio input
-      div.col-sm-2 Test tone
       div.col-sm-3
-        input#test-tone-level(type="range" min="0" max="100" value="0")
+        select.form-control#audio-in-select
+      div.col-sm-3
+        input#audio-in-level.hidden(type="range" min="0" max="100" value="0")
     div.form-group
       div.col-sm-3
-      div.col-sm-2
-        input#microphone(type="checkbox")
-        |  Microphone
       div.col-sm-3
-        input#microphone-level.hidden(type="range" min="0" max="100" value="0")
+        input#echo-cancellation(type="checkbox")
+        |  Enable echo cancellation
+      div.col-sm-6.text-warning
+        strong Experimental:
+        |  cancellation on/off may work on Chrome only.
+    div.form-group
+      label.col-sm-3.control-label Test tone
+      div.col-sm-3
+      div.col-sm-3
+        input#test-tone-level(type="range" min="0" max="100" value="0")
     br
     div.form-group
       label.col-sm-3.control-label Recording time limit
-      div.col-sm-2
+      div.col-sm-3
         input#time-limit(type="range" min="1" max="10" value="3")
-      div#time-limit-text.col-sm-7 3 minutes
+      div#time-limit-text.col-sm-6 3 minutes
     br
     div.form-group
       label.col-sm-3.control-label Encoding
@@ -62,8 +69,8 @@ div.container
     div.form-group
       div.col-sm-3
       div.col-sm-9.text-warning
-        strong Warning: 
-        span setting size below browser default may fail recording.
+        strong Notice: 
+        |  recording becomes unstable if buffer size is below browser default.
     br
     div.form-group
       div.col-sm-3.control-label

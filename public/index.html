@@ -8,31 +8,38 @@
   <body>
     <div class="container">
       <h1><a href="https://github.com/higuma/web-audio-recorder-js">WebAudioRecorder.js</a> demo</h1>
-      <p>Audio recording to WAV/OGG/MP3 with Web Audio API</p>
+      <p>Audio recording to WAV / OGG / MP3 with Web Audio API</p>
       <hr>
       <div class="form-horizontal">
         <div class="form-group">
           <label class="col-sm-3 control-label">Audio input</label>
-          <div class="col-sm-2">Test tone</div>
           <div class="col-sm-3">
-            <input id="test-tone-level" type="range" min="0" max="100" value="0">
+            <select id="audio-in-select" class="form-control"></select>
+          </div>
+          <div class="col-sm-3">
+            <input id="audio-in-level" type="range" min="0" max="100" value="0" class="hidden">
           </div>
         </div>
         <div class="form-group">
           <div class="col-sm-3"></div>
-          <div class="col-sm-2">
-            <input id="microphone" type="checkbox"> Microphone
-          </div>
           <div class="col-sm-3">
-            <input id="microphone-level" type="range" min="0" max="100" value="0" class="hidden">
+            <input id="echo-cancellation" type="checkbox"> Enable echo cancellation
+          </div>
+          <div class="col-sm-6 text-warning"><strong>Experimental:</strong> cancellation on/off may work on Chrome only.</div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Test tone</label>
+          <div class="col-sm-3"></div>
+          <div class="col-sm-3">
+            <input id="test-tone-level" type="range" min="0" max="100" value="0">
           </div>
         </div><br>
         <div class="form-group">
           <label class="col-sm-3 control-label">Recording time limit</label>
-          <div class="col-sm-2">
+          <div class="col-sm-3">
             <input id="time-limit" type="range" min="1" max="10" value="3">
           </div>
-          <div id="time-limit-text" class="col-sm-7">3 minutes</div>
+          <div id="time-limit-text" class="col-sm-6">3 minutes</div>
         </div><br>
         <div class="form-group">
           <label class="col-sm-3 control-label">Encoding</label>
@@ -73,7 +80,7 @@
         </div>
         <div class="form-group">
           <div class="col-sm-3"></div>
-          <div class="col-sm-9 text-warning"><strong>Warning: </strong><span>setting size below browser default may fail recording.</span></div>
+          <div class="col-sm-9 text-warning"><strong>Notice: </strong> recording becomes unstable if buffer size is below browser default.</div>
         </div><br>
         <div class="form-group">
           <div class="col-sm-3 control-label"><span id="recording" class="text-danger hidden"><strong>RECORDING</strong></span>&nbsp; <span id="time-display">00:00</span></div>

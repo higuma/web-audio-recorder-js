@@ -15,8 +15,9 @@ unless audioContext.createScriptProcessor?
 
 # elements (jQuery objects)
 $testToneLevel = $ '#test-tone-level'
-$microphone = $ '#microphone'
-$microphoneLevel = $ '#microphone-level'
+$audioInSelect = $ '#audio-in-select'
+$audioInLevel = $ '#audio-in-level'
+$echoCancellation = $ '#echo-cancellation'
 $timeLimit = $ '#time-limit'
 $encoding = $ 'input[name="encoding"]'
 $encodingOption = $ '#encoding-option'
@@ -34,12 +35,10 @@ $modalProgress = $ '#modal-progress'
 $modalError = $ '#modal-error'
 
 # initialize input element states (required for reloading page on Firefox)
+$audioInLevel.attr 'disabled', false
+$audioInLevel[0].valueAsNumber = 0
 $testToneLevel.attr 'disabled', false
 $testToneLevel[0].valueAsNumber = 0
-$microphone.attr 'disabled', false
-$microphone[0].checked = false
-$microphoneLevel.attr 'disabled', false
-$microphoneLevel[0].valueAsNumber = 0
 $timeLimit.attr 'disabled', false
 $timeLimit[0].valueAsNumber = 3
 $encoding.attr 'disabled', false
@@ -71,12 +70,12 @@ testTone = do ->
 testToneLevel = audioContext.createGain()
 testToneLevel.gain.value = 0
 testTone.connect testToneLevel
-microphoneLevel = audioContext.createGain()
-microphoneLevel.gain.value = 0
+audioInLevel = audioContext.createGain()
+audioInLevel.gain.value = 0
 mixer = audioContext.createGain()
 testToneLevel.connect mixer
-microphone = undefined          # obtained by user click
-microphoneLevel.connect mixer
+audioIn = undefined     # obtained by user selection
+audioInLevel.connect mixer
 mixer.connect audioContext.destination
 
 # audio recorder object (+ encoding setting implementation)
@@ -101,26 +100,65 @@ $testToneLevel.on 'input', ->
   testToneLevel.gain.value = level * level
   return
 
-$microphoneLevel.on 'input', ->
-  level = $microphoneLevel[0].valueAsNumber / 100
-  microphoneLevel.gain.value = level * level
+$audioInLevel.on 'input', ->
+  level = $audioInLevel[0].valueAsNumber / 100
+  audioInLevel.gain.value = level * level
   return
 
-# obtaining microphone input
-$microphone.click ->
-  unless microphone?
-    navigator.getUserMedia(
-      { audio: true },
-      (stream) ->
-        microphone = audioContext.createMediaStreamSource stream
-        microphone.connect microphoneLevel
-        $microphone.attr 'disabled', true
-        $microphoneLevel.removeClass 'hidden'
-      (error) ->
-        $microphone[0].checked = false
-        window.alert "Could not get audio input."
-    )
+# enumerate audio input source list
+onGotDevices = (devInfos) ->
+  options = '<option value="no-input" selected>(No input)</option>'
+  index = 0
+  for info in devInfos
+    continue if info.kind != 'audioinput'
+    name = info.label || "Audio in #{++index}"
+    options += "<option value=#{info.deviceId}>#{name}</option>"
+  $audioInSelect.html options
   return
+
+onError = (msg) ->
+  $modalError.find('.alert').html msg
+  $modalError.modal 'show'
+  return
+
+if navigator.mediaDevices? && navigator.mediaDevices.enumerateDevices?
+  navigator.mediaDevices.enumerateDevices()
+    .then onGotDevices
+    .catch (err) -> onError "Could not enumerate audio devices: #{err}"
+else
+  $audioInSelect.html '<option value="no-input" selected>(No input)</option><option value="default-audio-input">Default audio input</option>'
+
+# select audio input
+onGotAudioIn = (stream) ->
+  audioIn.disconnect() if audioIn?
+  audioIn = audioContext.createMediaStreamSource stream
+  audioIn.connect audioInLevel
+  $audioInLevel.removeClass 'hidden'
+
+onChangeAudioIn = ->
+  deviceId = $audioInSelect[0].value
+  if deviceId == 'no-input'
+    audioIn.disconnect() if audioIn?
+    audioIn = undefined
+    $audioInLevel.addClass 'hidden'
+  else
+    deviceId = undefined if deviceId == 'default-audio-input'
+    constraint =
+      audio:
+        deviceId: if deviceId? then { exact: deviceId } else undefined
+        mandatory:
+          echoCancellation: $echoCancellation[0].checked
+    if navigator.mediaDevices? && navigator.mediaDevices.getUserMedia?
+      navigator.mediaDevices.getUserMedia(constraint)
+        .then onGotAudioIn
+        .catch (err) -> onError "Could not get audio media device: #{err}"
+    else
+      navigator.getUserMedia constraint, onGotAudioIn,
+        -> onError "Could not get audio media device: #{err}"
+  return
+
+$audioInSelect.on 'change', onChangeAudioIn
+$echoCancellation.on 'change', onChangeAudioIn
 
 # recording time limit
 plural = (n) -> if n > 1 then 's' else ''
@@ -158,7 +196,7 @@ optionValue =
   ogg: 6
   mp3: 5
 
-$encoding.click (event) ->
+$encoding.on 'click', (event) ->
   encoding = $(event.target).attr 'encoding'
   audioRecorder.setEncoding encoding
   option = ENCODING_OPTION[encoding]
@@ -180,7 +218,7 @@ $encodingOption.on 'input', ->
 # encoding process selector
 encodingProcess = 'background'  # background | separate
 
-$encodingProcess.click (event) ->
+$encodingProcess.on 'click', (event) ->
   encodingProcess = $(event.target).attr 'mode'
   hidden = encodingProcess == 'background'
   $('#report-interval-label').toggleClass 'hidden', hidden
@@ -261,14 +299,14 @@ setProgress = (progress) ->
   progressComplete = progress == 1
   return
 
-$modalProgress.on "hide.bs.modal", ->
+$modalProgress.on 'hide.bs.modal', ->
   audioRecorder.cancelEncoding() if !progressComplete
   return
 
 # record | stop | cancel buttons
 disableControlsOnRecord = (disabled) ->
-  unless microphone?
-    $microphone.attr 'disabled', disabled
+  $audioInSelect.attr 'disabled', disabled
+  $echoCancellation.attr 'disabled', disabled
   $timeLimit.attr 'disabled', disabled
   $encoding.attr 'disabled', disabled
   $encodingOption.attr 'disabled', disabled
@@ -310,14 +348,14 @@ stopRecording = (finish) ->
     audioRecorder.cancelRecording()
   return
 
-$record.click ->
+$record.on 'click', ->
   if audioRecorder.isRecording()
     stopRecording true
   else
     startRecording()
   return
 
-$cancel.click ->
+$cancel.on 'click', ->
   stopRecording false
   return
 
@@ -336,6 +374,5 @@ audioRecorder.onComplete = (recorder, blob) ->
   return
 
 audioRecorder.onError = (recorder, message) ->
-  $modalError.find('.alert').html message
-  $modalError.modal 'show'
+  onError message
   return

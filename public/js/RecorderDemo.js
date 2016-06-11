@@ -1,5 +1,5 @@
 (function() {
-  var $bufferSize, $cancel, $dateTime, $encoding, $encodingOption, $encodingProcess, $microphone, $microphoneLevel, $modalError, $modalLoading, $modalProgress, $record, $recording, $recordingList, $reportInterval, $testToneLevel, $timeDisplay, $timeLimit, BUFFER_SIZE, ENCODING_OPTION, MP3_BIT_RATE, OGG_KBPS, OGG_QUALITY, URL, audioContext, audioRecorder, defaultBufSz, disableControlsOnRecord, encodingProcess, iDefBufSz, microphone, microphoneLevel, minSecStr, mixer, optionValue, plural, progressComplete, saveRecording, setProgress, startRecording, stopRecording, testTone, testToneLevel, updateBufferSizeText, updateDateTime;
+  var $audioInLevel, $audioInSelect, $bufferSize, $cancel, $dateTime, $echoCancellation, $encoding, $encodingOption, $encodingProcess, $modalError, $modalLoading, $modalProgress, $record, $recording, $recordingList, $reportInterval, $testToneLevel, $timeDisplay, $timeLimit, BUFFER_SIZE, ENCODING_OPTION, MP3_BIT_RATE, OGG_KBPS, OGG_QUALITY, URL, audioContext, audioIn, audioInLevel, audioRecorder, defaultBufSz, disableControlsOnRecord, encodingProcess, iDefBufSz, minSecStr, mixer, onChangeAudioIn, onError, onGotAudioIn, onGotDevices, optionValue, plural, progressComplete, saveRecording, setProgress, startRecording, stopRecording, testTone, testToneLevel, updateBufferSizeText, updateDateTime;
 
   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
@@ -13,9 +13,11 @@
 
   $testToneLevel = $('#test-tone-level');
 
-  $microphone = $('#microphone');
+  $audioInSelect = $('#audio-in-select');
 
-  $microphoneLevel = $('#microphone-level');
+  $audioInLevel = $('#audio-in-level');
+
+  $echoCancellation = $('#echo-cancellation');
 
   $timeLimit = $('#time-limit');
 
@@ -47,17 +49,13 @@
 
   $modalError = $('#modal-error');
 
+  $audioInLevel.attr('disabled', false);
+
+  $audioInLevel[0].valueAsNumber = 0;
+
   $testToneLevel.attr('disabled', false);
 
   $testToneLevel[0].valueAsNumber = 0;
-
-  $microphone.attr('disabled', false);
-
-  $microphone[0].checked = false;
-
-  $microphoneLevel.attr('disabled', false);
-
-  $microphoneLevel[0].valueAsNumber = 0;
 
   $timeLimit.attr('disabled', false);
 
@@ -100,17 +98,17 @@
 
   testTone.connect(testToneLevel);
 
-  microphoneLevel = audioContext.createGain();
+  audioInLevel = audioContext.createGain();
 
-  microphoneLevel.gain.value = 0;
+  audioInLevel.gain.value = 0;
 
   mixer = audioContext.createGain();
 
   testToneLevel.connect(mixer);
 
-  microphone = void 0;
+  audioIn = void 0;
 
-  microphoneLevel.connect(mixer);
+  audioInLevel.connect(mixer);
 
   mixer.connect(audioContext.destination);
 
@@ -132,27 +130,87 @@
     testToneLevel.gain.value = level * level;
   });
 
-  $microphoneLevel.on('input', function() {
+  $audioInLevel.on('input', function() {
     var level;
-    level = $microphoneLevel[0].valueAsNumber / 100;
-    microphoneLevel.gain.value = level * level;
+    level = $audioInLevel[0].valueAsNumber / 100;
+    audioInLevel.gain.value = level * level;
   });
 
-  $microphone.click(function() {
-    if (microphone == null) {
-      navigator.getUserMedia({
-        audio: true
-      }, function(stream) {
-        microphone = audioContext.createMediaStreamSource(stream);
-        microphone.connect(microphoneLevel);
-        $microphone.attr('disabled', true);
-        return $microphoneLevel.removeClass('hidden');
-      }, function(error) {
-        $microphone[0].checked = false;
-        return window.alert("Could not get audio input.");
-      });
+  onGotDevices = function(devInfos) {
+    var index, info, name, options, _i, _len;
+    options = '<option value="no-input" selected>(No input)</option>';
+    index = 0;
+    for (_i = 0, _len = devInfos.length; _i < _len; _i++) {
+      info = devInfos[_i];
+      if (info.kind !== 'audioinput') {
+        continue;
+      }
+      name = info.label || ("Audio in " + (++index));
+      options += "<option value=" + info.deviceId + ">" + name + "</option>";
     }
-  });
+    $audioInSelect.html(options);
+  };
+
+  onError = function(msg) {
+    $modalError.find('.alert').html(msg);
+    $modalError.modal('show');
+  };
+
+  if ((navigator.mediaDevices != null) && (navigator.mediaDevices.enumerateDevices != null)) {
+    navigator.mediaDevices.enumerateDevices().then(onGotDevices)["catch"](function(err) {
+      return onError("Could not enumerate audio devices: " + err);
+    });
+  } else {
+    $audioInSelect.html('<option value="no-input" selected>(No input)</option><option value="default-audio-input">Default audio input</option>');
+  }
+
+  onGotAudioIn = function(stream) {
+    if (audioIn != null) {
+      audioIn.disconnect();
+    }
+    audioIn = audioContext.createMediaStreamSource(stream);
+    audioIn.connect(audioInLevel);
+    return $audioInLevel.removeClass('hidden');
+  };
+
+  onChangeAudioIn = function() {
+    var constraint, deviceId;
+    deviceId = $audioInSelect[0].value;
+    if (deviceId === 'no-input') {
+      if (audioIn != null) {
+        audioIn.disconnect();
+      }
+      audioIn = void 0;
+      $audioInLevel.addClass('hidden');
+    } else {
+      if (deviceId === 'default-audio-input') {
+        deviceId = void 0;
+      }
+      constraint = {
+        audio: {
+          deviceId: deviceId != null ? {
+            exact: deviceId
+          } : void 0,
+          mandatory: {
+            echoCancellation: $echoCancellation[0].checked
+          }
+        }
+      };
+      if ((navigator.mediaDevices != null) && (navigator.mediaDevices.getUserMedia != null)) {
+        navigator.mediaDevices.getUserMedia(constraint).then(onGotAudioIn)["catch"](function(err) {
+          return onError("Could not get audio media device: " + err);
+        });
+      } else {
+        navigator.getUserMedia(constraint, onGotAudioIn, function() {
+          return onError("Could not get audio media device: " + err);
+        });
+      }
+    }
+  };
+
+  $audioInSelect.on('change', onChangeAudioIn);
+
+  $echoCancellation.on('change', onChangeAudioIn);
 
   plural = function(n) {
     if (n > 1) {
@@ -207,7 +265,7 @@
     mp3: 5
   };
 
-  $encoding.click(function(event) {
+  $encoding.on('click', function(event) {
     var encoding, option;
     encoding = $(event.target).attr('encoding');
     audioRecorder.setEncoding(encoding);
@@ -228,7 +286,7 @@
 
   encodingProcess = 'background';
 
-  $encodingProcess.click(function(event) {
+  $encodingProcess.on('click', function(event) {
     var hidden;
     encodingProcess = $(event.target).attr('mode');
     hidden = encodingProcess === 'background';
@@ -308,16 +366,15 @@
     progressComplete = progress === 1;
   };
 
-  $modalProgress.on("hide.bs.modal", function() {
+  $modalProgress.on('hide.bs.modal', function() {
     if (!progressComplete) {
       audioRecorder.cancelEncoding();
     }
   });
 
   disableControlsOnRecord = function(disabled) {
-    if (microphone == null) {
-      $microphone.attr('disabled', disabled);
-    }
+    $audioInSelect.attr('disabled', disabled);
+    $echoCancellation.attr('disabled', disabled);
     $timeLimit.attr('disabled', disabled);
     $encoding.attr('disabled', disabled);
     $encodingOption.attr('disabled', disabled);
@@ -362,7 +419,7 @@
     }
   };
 
-  $record.click(function() {
+  $record.on('click', function() {
     if (audioRecorder.isRecording()) {
       stopRecording(true);
     } else {
@@ -370,7 +427,7 @@
     }
   });
 
-  $cancel.click(function() {
+  $cancel.on('click', function() {
     stopRecording(false);
   });
 
@@ -390,8 +447,7 @@
   };
 
   audioRecorder.onError = function(recorder, message) {
-    $modalError.find('.alert').html(message);
-    $modalError.modal('show');
+    onError(message);
   };
 
 }).call(this);
