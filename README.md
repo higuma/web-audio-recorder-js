@@ -16,9 +16,9 @@ WebAudioRecorder.js is a JavaScript library that records audio input (Web Audio 
 
 ## Demo
 
-Microphone recorder demo (moved to https server for google Chrome).
+Microphone recorder demo.
 
-<https://boo-higuma.ssl-lolipop.jp/gh-pages/web-audio-recorder-js/>
+<https://higuma.github.io/web-audio-recorder-js/>
 
 ## Library files
 
