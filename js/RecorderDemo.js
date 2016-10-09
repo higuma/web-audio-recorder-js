@@ -186,16 +186,48 @@
       if (deviceId === 'default-audio-input') {
         deviceId = void 0;
       }
-      constraint = {
-        audio: {
-          deviceId: deviceId != null ? {
-            exact: deviceId
-          } : void 0,
-          mandatory: {
-            echoCancellation: $echoCancellation[0].checked
+      if (navigator.webkitGetUserMedia !== undefined) {
+        constraint = {
+          video: false,
+          audio: {
+            optional: [
+                {sourceId:deviceId},
+                {googAutoGainControl: false},
+                {googAutoGainControl2: false},
+                {echoCancellation: false},
+                {googEchoCancellation: false},
+                {googEchoCancellation2: false},
+                {googDAEchoCancellation: false},
+                {googNoiseSuppression: false},
+                {googNoiseSuppression2: false},
+                {googHighpassFilter: false},
+                {googTypingNoiseDetection: false},
+                {googAudioMirroring: false}
+              ]
+            }
           }
         }
-      };
+      else if (navigator.mozGetUserMedia !== undefined) {
+        constraint = {
+          video: false,
+          audio: {
+            deviceId: deviceId ? { exact: deviceId } : void 0,
+            echoCancellation: false,
+            mozAutoGainControl: false
+            //mozNoiseSuppression: false
+            }
+          }
+
+       }
+      else {
+        constraint = {
+          video: false,
+          audio: {
+            deviceId: deviceId ? {exact: deviceId} : void 0,
+            echoCancellation: false
+          }
+        }
+      }
       if ((navigator.mediaDevices != null) && (navigator.mediaDevices.getUserMedia != null)) {
         navigator.mediaDevices.getUserMedia(constraint).then(onGotAudioIn)["catch"](function(err) {
           return onError("Could not get audio media device: " + err);
