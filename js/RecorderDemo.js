@@ -191,9 +191,7 @@
           deviceId: deviceId != null ? {
             exact: deviceId
           } : void 0,
-          mandatory: {
-            echoCancellation: $echoCancellation[0].checked
-          }
+          echoCancellation: $echoCancellation[0].checked
         }
       };
       if ((navigator.mediaDevices != null) && (navigator.mediaDevices.getUserMedia != null)) {
